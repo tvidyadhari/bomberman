@@ -1,0 +1,102 @@
+:root {
+    font-size: 16px;
+    --cell-size: 2.5rem; 
+    --fs-body: 1rem;
+    --fs-result: 4.5rem;
+    --clr-safe: #99e6b3;
+    --clr-blast: red;
+    --clr-highlight: lightsteelblue;
+    --clr-cell: lightgray;
+    --clr-text: black;
+}
+@media (min-width: 550px) {
+    :root {
+        --cell-size: 3.25rem;
+        --fs-result: 6rem;
+    }
+}
+html, body {
+    box-sizing: border-box;
+    height: 100%;
+    width: 100%;
+    font-family: monospace;
+    font-size: var(--fs-body);
+    cursor: default;
+}
+body {
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    color: var(--clr-text);
+}
+p, h1{
+    margin: 0;
+}
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: calc(9*var(--cell-size) + 8*2px);
+}
+.scoreboard {
+    display: flex;
+}
+
+.cell {
+    height: var(--cell-size);
+    background: var(--clr-cell);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cell:hover {
+    transition: transform 150ms ease-in-out;
+    transform: scale(1.25);
+    background-color: var(--clr-highlight);
+}
+.game-grid {
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell-size));
+    grid-gap: 3px;
+}
+.blast::after {
+    content: '💣';
+}
+/* add this to see bombs' locations */
+/* .bomb {
+    background-color: red;
+} */
+.blast {
+    background: var(--clr-blast);
+    pointer-events: none;
+    text-align: center;
+}
+.safe {
+    background: var(--clr-safe);
+    pointer-events: none;
+}
+.btn {
+    margin: 10px 0;
+    background: var(--clr-safe);
+    border: 1px solid black;
+    padding: 1em 2em;
+}
+.btn:hover {
+    cursor: pointer;
+    box-shadow: 0 0.2em 1em 0 rgba(0, 0, 0, 0.5);
+    transition: transform 150ms;
+    transform: translateY(-0.25em);
+}
+
+.result {
+    position: absolute;
+    font-size: var(--fs-result);
+    text-align: center;
+    background-color: rgba(175, 238, 238, 0.60);
+}
+.disable {
+    pointer-events: none;
+}
