@@ -1,7 +1,7 @@
 :root {
     font-size: 16px;
-    --cell-size: 1.75rem;
-    --fs-result: 2rem;
+    --cell-size: 2rem;
+    --fs-result: 4rem;
     --fs-body: 1rem;
     --clr-safe: #99e6b3;
     --clr-blast: red;
