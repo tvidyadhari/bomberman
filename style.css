@@ -1,15 +1,16 @@
 :root {
     font-size: 16px;
-    --cell-size: 2.5rem; 
+    --cell-size: 1.75rem;
+    --fs-result: 2rem;
     --fs-body: 1rem;
-    --fs-result: 4.5rem;
     --clr-safe: #99e6b3;
     --clr-blast: red;
     --clr-highlight: lightsteelblue;
     --clr-cell: lightgray;
     --clr-text: black;
 }
-@media (min-width: 550px) {
+
+@media (min-width: 500px) {
     :root {
         --cell-size: 3.25rem;
         --fs-result: 6rem;
@@ -57,6 +58,11 @@ header {
     transform: scale(1.25);
     background-color: var(--clr-highlight);
 }
+@media (hover: none) {
+    cell:link {
+       color: inherit;
+    }
+ }
 .game-grid {
     display: grid;
     grid-template-columns: repeat(9, var(--cell-size));
