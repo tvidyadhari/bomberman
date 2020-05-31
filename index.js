@@ -59,12 +59,12 @@ let startGame = () => {
         for(let j = 0; j < GRID_LEN; j++)
             grid[i][j].count = countAdjacentBombs(grid[i][j]);
 
-    for(let i = 0; i < GRID_LEN; i++) {
-        for(let j = 0; j < GRID_LEN; j++) {
-            if(grid[i][j].isBomb)
-                cells[grid[i][j].id].classList.add("red");
-        }
-    }
+    // for(let i = 0; i < GRID_LEN; i++) {
+    //     for(let j = 0; j < GRID_LEN; j++) {
+    //         if(grid[i][j].isBomb)
+    //             cells[grid[i][j].id].classList.add("red");
+    //     }
+    // }
 }
 
 // checks if a (r, c) is valid position in the grid
