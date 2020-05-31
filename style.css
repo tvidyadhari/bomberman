@@ -2,9 +2,9 @@
     font-size: 16px;
     --cell-size: 2rem;
     --fs-result: 4rem;
-    --fs-body: 1rem;
+    --fs-body: 0.75rem;
     --clr-safe: #99e6b3;
-    --clr-blast: red;
+    --clr-blast: #e27d6d;
     --clr-highlight: lightsteelblue;
     --clr-cell: lightgray;
     --clr-text: black;
@@ -14,6 +14,7 @@
     :root {
         --cell-size: 3.25rem;
         --fs-result: 6rem;
+        --fs-body: 1rem;
     }
 }
 html, body {
@@ -32,15 +33,25 @@ body {
     align-items: center;
     flex-direction: column;
     color: var(--clr-text);
+
 }
 p, h1{
     margin: 0;
 }
-header {
+
+header, footer {
     display: flex;
     align-items: center;
     justify-content: space-between;
     width: calc(9*var(--cell-size) + 8*2px);
+    font-size: calc(1.25*var(--fs-body));
+}
+footer p{
+    margin: 0;
+    line-height: 1em;
+}
+.flag-status {
+    display: flex;
 }
 .scoreboard {
     display: flex;
@@ -67,23 +78,47 @@ header {
     display: grid;
     grid-template-columns: repeat(9, var(--cell-size));
     grid-gap: 3px;
+    font-size: calc(2*var(--fs-body));
 }
 .blast::after {
     content: '💣';
 }
-/* add this to see bombs' locations */
-/* .bomb {
-    background-color: red;
-} */
+.flag::after {
+    content: '🚩';
+    font-size: 1.5em;
+}
+.flag.blast::after {
+    content: '❌';
+    font-size: 1.5em;
+}
 .blast {
     background: var(--clr-blast);
-    pointer-events: none;
     text-align: center;
-}
-.safe {
-    background: var(--clr-safe);
     pointer-events: none;
 }
+
+.safe {
+    pointer-events: none;
+}
+.zero { background: #6bd793;}
+.one { background: #60cc89;}
+.two { background: #55c17f;}
+.three { background: #49b675;}
+.four { background: #3dab6b;}
+.five { background: #30a161;}
+.six { background: #229658;}
+.seven { background: #3f9561;}
+.eight { background: #35764d;}
+/* .zero { background: #aeddff;}
+.one { background: #a3d1f5;}
+.two { background: #97c5e9;}
+.three { background: #8bb9dd;}
+.four { background: #7fadd1;}
+.five { background: #74a2c5;}
+.six { background: #6897b9;}
+.seven { background: #7397b4;}
+.eight { background: #5b778d;} */
+
 .btn {
     margin: 10px 0;
     background: var(--clr-safe);
@@ -101,8 +136,14 @@ header {
     position: absolute;
     font-size: var(--fs-result);
     text-align: center;
-    background-color: rgba(175, 238, 238, 0.60);
+    background-color: rgba(175, 238, 238, 0.80);
+    /* background-color: rgba(129, 128, 185, 0.5);  */
+    /* background-color: rgba(182, 73, 138, 0.75); */
+
 }
 .disable {
     pointer-events: none;
+}
+.red{
+    background-color: red;
 }

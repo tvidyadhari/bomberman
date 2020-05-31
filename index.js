@@ -1,112 +1,210 @@
-const cells = document.querySelectorAll(".cell");
-const ROWS = 9;
+const BOMBS = 10;
+const GRID_LEN = 9;
+let cellsOpened = 0;
+let grid = new Array(GRID_LEN);
+let bombsIndices = new Set();
+let cells = document.querySelectorAll(".cell");
 const score = document.querySelector(".score");
+const flagCount = document.querySelector(".flag-count");
+const game = document.querySelector(".game-grid");
 const reset = document.querySelector(".replay");
 const result = document.querySelector(".result");
-const grid = document.querySelector(".game-grid");
-let curBombInd = 0;
-let bombsIndices = [];
+let safeColorMap = {0:"zero", 1:"one", 2:"two", 3: "three", 4:"four", 5:"five", 6:"six", 7:"seven", 8:"eight"}
 
-let init = () => {
-    bombsIndices = [];
-    curBombInd = 0;
-    placeBombs();
-    addEventListener();
+function Cell(r, c, id) {
+    this.id = +id
+    this.row = +r;
+    this.col = +c;
+    this.isBomb = false;
+    this.hasFlag = false;
+    this.bombCount = 0;
+    this.opened = false;
 }
 
-let addEventListener = () => {
-    cells.forEach((cell) => {
-        cell.addEventListener("click", cellClicked, {once: true});
-    })
-}
-let removeEventListener = () => {
-    cells.forEach((cell) => {
-        cell.removeEventListener("click", cellClicked, {once: true});
-    })
-}
+let startGame = () => {
+    // reset all to default
+    cellsOpened = 0;
+    bombsIndices = new Set();
+    score.innerHTML = 0;
+    flagCount.innerHTML = 10;
+    result.setAttribute("class", "result");
+    result.innerHTML = "";
+    game.classList.remove("disable");
 
-// generate N random values for bombs
-let generateNRandomValues = (n)=>{
-    let max = n*n;
-    let set = new Set();
-    for(let i = 0; i < n; i++) {
-        let randomIndex = Math.floor(Math.random()*max);
-        while(set.has(randomIndex)){
-            console.log(randomIndex);
-            randomIndex = Math.floor(Math.random()*max);
-        }
-        set.add(randomIndex);
-        bombsIndices.push(randomIndex);
-    }
-    console.log(bombsIndices);
-    return bombsIndices;
-}
-
-// place bombs 
-let placeBombs = ()=> {
-    bombsIndices = generateNRandomValues(ROWS);
-    bombsIndices.forEach((bombIndex) => {
-        cells[bombIndex].classList.add("bomb");
+    //2d array for grid representation
+    grid = new Array(GRID_LEN);
+    for(let i = 0; i < GRID_LEN; i++)
+        grid[i] = new Array(GRID_LEN);
+    // generate bomb indices
+    bombsIndices = generateNRandomValues(BOMBS);
+    cells.forEach(cell => {
+        // remove any additional classes/values
+        cell.setAttribute("class", "cell");
+        cell.innerHTML = "";
+        // add left click event(click)
+        cell.addEventListener("click", cellClick, {once: true});
+        // add right click event(contextmenu)
+        cell.addEventListener("contextmenu", toggleFlag);
+        // placing cell in grid
+        let r = getRow(cell.id);
+        let c = getCol(cell.id);
+        grid[r][c] = new Cell(r, c, +cell.id-1);
+        // placing bomb
+        if(bombsIndices.has(+cell.id - 1))
+            grid[r][c].isBomb = true;
     });
+
+    // update cell's adjacent bomb count 
+    for(let i = 0; i < GRID_LEN; i++)
+        for(let j = 0; j < GRID_LEN; j++)
+            grid[i][j].count = countAdjacentBombs(grid[i][j]);
+
+    for(let i = 0; i < GRID_LEN; i++) {
+        for(let j = 0; j < GRID_LEN; j++) {
+            if(grid[i][j].isBomb)
+                cells[grid[i][j].id].classList.add("red");
+        }
+    }
 }
 
-// ref: https://stackoverflow.com/questions/3583724/how-do-i-add-a-delay-in-a-javascript-loop
-// blast all bombs with delay
-let blastAllBombs = (target)=> {
-    target.classList.add("blast");
-     if(curBombInd < ROWS - 1){
-        setTimeout(()=>{
-            blastAllBombs(cells[bombsIndices[curBombInd]]);
-            curBombInd += 1;
-        }, 100);
-    }
+// checks if a (r, c) is valid position in the grid
+let validPos = (r, c) => {
+    return (r >= 0) && (r < GRID_LEN) && (c >= 0) && (c < GRID_LEN);
+}
+
+// count adjacent bombs
+let countAdjacentBombs = (cell) => {
+    if(cell.isBomb) return -1;  
+    let count = 0;
+    for(let i = -1; i <= 1; i++) {
+        for(let j = -1; j <= 1; j++) {
+            if(validPos(cell.row+i, cell.col+j) && grid[cell.row + i][cell.col + j].isBomb)
+                count += 1;
+        }
+    }    
+    return count;  
 }
 
 // when a cell is clicked
-let cellClicked = (event) => {
-    // lose
-    if(event.target.classList.contains("bomb")) {
-        removeEventListener();
-        blastAllBombs(event.target);
-        result.classList.add("lose");
-        result.innerHTML = "YOU LOSE:/"
-        grid.classList.add("disable");
+let cellClick = (event) => {
+    // if cell contains flag return
+    if(event.target.classList.contains("flag"))
+        return;
 
-    }
+    let r = getRow(event.target.id);
+    let c = getCol(event.target.id);
+    // if bomb is clicked
+    if(grid[r][c].isBomb)
+        gameOver(event.target);
     else {
-        // open the cell
-        event.target.classList.add("safe");
-        let scoreVal = +score.innerHTML;
-        score.innerHTML = scoreVal + 1;
-        // win
-        if(scoreVal+1 == 72) {
-            removeEventListener();
-            result.classList.add("win");
-            result.innerHTML = "YOU WIN!!!";
-            grid.classList.add("disable");
-        }
-
+        floodFill(r, c);
+        checkWin();
     }
 }
 
-// reset
-reset.addEventListener("click", ()=> {
-    // remove all added classes
-    cells.forEach((cell) => {
-        cell.classList.remove("safe");
-        cell.classList.remove("blast");
-        cell.classList.remove("bomb");
-    })
-    // make score 0
-    score.innerHTML = 0;
-    // remove result
-    result.innerHTML = "";
-    result.classList.remove("win");
-    result.classList.remove("lose");
-    grid.classList.remove("disable");
+// flood-fill algo; boundaries: bombs/ opened cells
+let floodFill = (r, c) => {
+    if((!validPos(r, c)) || grid[r][c].hasFlag || grid[r][c].opened || grid[r][c].isBomb)
+        return;
+    cells[grid[r][c].id].classList.add("open");
+    cells[grid[r][c].id].classList.add(safeColorMap[grid[r][c].count]);
+    cells[grid[r][c].id].classList.add("safe");
+    cellsOpened += 1;
+    score.innerHTML = +score.innerHTML + 1;
+    grid[r][c].opened = true;
+    if(grid[r][c].count === 0) {
+        for(let i = -1; i <= 1; i++)
+            for(let j = -1; j <= 1; j++)
+                floodFill(r+i, c+j);
+    } else {
+        cells[grid[r][c].id].innerHTML = grid[r][c].count;
+    }
+}
 
-    init();
-})
+// adds/removes flag on right click
+let toggleFlag = (event) => {
+    let curFlagCount = +flagCount.innerHTML;
+    let r = getRow(+event.target.id);
+    let c = getCol(+event.target.id);
+    event.preventDefault();
+    // remove flag
+    if(event.target.classList.contains("flag")) {
+        event.target.classList.remove("flag");
+        flagCount.innerHTML = curFlagCount + 1;
+    }
+    // add flag 
+    else if(curFlagCount > 0){
+        event.target.classList.add("flag");
+        flagCount.innerHTML = curFlagCount - 1;
+    }
+    grid[r][c].hasFlag = !grid[r][c].hasFlag;
+}
 
-// start the game
-init();
+let getRow = (val) => Math.ceil(+val/GRID_LEN) - 1;
+let getCol = (val) => (+val - 1) % GRID_LEN; 
+
+// generate N random values for bombs
+let generateNRandomValues = (n)=>{
+    let max = GRID_LEN*GRID_LEN;
+    let set = new Set();
+    for(let i = 0; i < n; i++) {
+        let randomIndex = Math.floor(Math.random()*max);
+        while(bombsIndices.has(randomIndex)){
+            console.log(randomIndex);
+            randomIndex = Math.floor(Math.random()*max);
+        }
+        bombsIndices.add(randomIndex);
+    }
+    return bombsIndices;
+}
+
+// check if the user won
+let checkWin = () => {
+    if(cellsOpened !== GRID_LEN*GRID_LEN - BOMBS)
+        return;
+    removeEventListeners();
+    result.classList.add("win");
+    result.innerHTML = "~ YOU WON🎉 ~";
+    console.log("won");
+
+}
+
+// game over
+let gameOver = (target) => {
+    game.classList.add("disable");
+    removeEventListeners();
+    blastAllBombs(target);   
+    result.classList.add("lose");
+    result.innerHTML = "YOU LOST:/"
+}
+// remove all event listeners
+let removeEventListeners = () => {
+    cells.forEach(cell => {
+        // remove left click event(click)
+        cell.removeEventListener("click", cellClick, {once: true});
+        // remove right click event(contextmenu)
+        cell.removeEventListener("contextmenu", toggleFlag);
+    });
+}
+
+// blast all bombs
+let blastAllBombs = (target) => {
+    target.classList.add("blast");
+    let i = 1;
+    bombsIndices.forEach((bombIndex) => {
+        // IIFE
+        (function() {
+            setTimeout(() => {
+                cells[bombIndex].classList.add("blast");
+            }, i*100);
+        })();
+        i += 1;
+    });
+}
+// replay 
+reset.addEventListener("click", ()=> { 
+    startGame();
+});
+
+
+startGame();
